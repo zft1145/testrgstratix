@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绕过stratix注入检测</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+        body{background:#1a1f3b;color:#fff;overflow-x:hidden;position:relative;min-height:100vh;padding-top:20px}
+        body::-webkit-scrollbar{display:none;width:0;height:0}
+        body{-ms-overflow-style:none;scrollbar-width:none}
+        
+        /* 全局默认隐藏，等加载完显示 */
+        .container, .top-bar {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease;
+        }
+
+        /* 加载遮罩 */
+        .loader-wrapper {
+            position: fixed;
+            inset: 0;
+            background: #1a1f3b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* 加载消失：中心放大淡出 */
+        .loader-wrapper.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.2);
+        }
+
+        /* 加载圈 */
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(147, 51, 234, 0.2);
+            border-top-color: #9333ea;
+            border-radius: 50%;
+            animation: loader-rotate 0.8s infinite linear;
+        }
+        @keyframes loader-rotate {
+            to { transform: rotate(360deg) }
+        }
+
+        .bg-blur{position:fixed;inset:0;background:#1a1f3b;filter:blur(8px);z-index:-2;transform:scale(1.1)}
+        .web-bg{position:fixed;inset:0;z-index:-1;opacity:.25;pointer-events:none}
+        .particle{position:fixed;width:6px;height:6px;background:radial-gradient(circle,rgba(168,85,247,.85),rgba(124,58,237,.45));border-radius:50%;pointer-events:none;animation:particleBurst .85s ease-out forwards;box-shadow:0 0 10px rgba(168,85,247,.7);z-index:9999}
+        @keyframes particleBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+        .container{max-width:480px;margin:0 auto;padding:20px;position:relative;z-index:2}
+        .top-bar{display:flex;justify-content:center;align-items:center;padding:12px 20px;position:fixed;inset:0 0 auto;margin:0 auto;max-width:480px;z-index:99;background:rgba(26,31,59,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);border-radius:0 0 20px 20px;opacity:0;visibility:hidden;transform:translateY(-100%);transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+        .top-bar.show{opacity:1;visibility:visible;transform:translateY(0)}
+        .top-bar h1{font-size:1.15rem;font-weight:700;white-space:nowrap;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .hero{margin-bottom:30px;animation:fadeInUp 1s}
+        .hero h1{font-size:2.2rem;font-weight:700;margin-bottom:6px;line-height:1.2;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .hero .eng-sub{font-size:.95rem;color:rgba(255,255,255,.5);letter-spacing:1px;margin-bottom:10px}
+        .hero p{font-size:1rem;color:rgba(255,255,255,.6);letter-spacing:.5px}
+        .advantage-line{margin-top:12px;min-height:22px;font-size:.95rem;color:rgba(255,255,255,.7);display:flex;align-items:center}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .action-buttons{display:flex;flex-direction:column;gap:15px;margin-bottom:40px;animation:fadeInUp 1s .2s backwards;position:relative;z-index:3}
+        .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);transform:scale(0);animation:rippleAnim .6s linear forwards;pointer-events:none}
+        @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+        .btn{padding:16px;border-radius:20px;font-size:1.1rem;font-weight:600;text-align:center;cursor:pointer;transition:all .3s;backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);background:linear-gradient(120deg,#9333ea,#7c3aed);background-size:400% 100%;animation:gradientShift 4s infinite;box-shadow:0 8px 25px rgba(147,51,234,.3);position:relative;overflow:hidden}
+        .btn span{display:inline-block;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 12px 30px rgba(147,51,234,.5)}
+        .features h2{font-size:1.5rem;margin-bottom:20px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .feature-list{display:flex;flex-direction:column;gap:14px}
+        .feature-item{background:rgba(255,255,255,.04);border-radius:22px;padding:22px;backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px rgba(255,255,255,.05);transition:all .7s cubic-bezier(.22,1,.36,1);opacity:0;transform:translateY(50px) scale(.92);position:relative;z-index:2}
+        .feature-item.show{opacity:1;transform:translateY(0) scale(1)}
+        .feature-item:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:translateY(-5px) scale(1.015);box-shadow:0 12px 36px rgba(0,0,0,.18)}
+        .feature-item h3{font-size:1.15rem;margin-bottom:6px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .feature-item p{color:rgba(255,255,255,.7);font-size:.95rem}
+        .type-cursor{display:inline-block;width:2px;height:1.1em;background:#fff;margin-left:4px;animation:blink .7s infinite;vertical-align:middle}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        .browser-overlay{position:fixed;inset:0;background:rgba(26,31,59,.92);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:0 24px;visibility:hidden;opacity:0;transition:all .4s}
+        .browser-overlay.show{visibility:visible;opacity:1}
+        .overlay-box{max-width:380px;width:100%;text-align:center;animation:fadeInUp .8s}
+        .overlay-box h2{font-size:1.4rem;margin-bottom:12px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
+        .overlay-box p{font-size:1rem;color:rgba(255,255,255,.7);margin-bottom:30px;line-height:1.6}
+        .copy-link-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 16px;font-size:1rem;color:#fff;margin-bottom:20px;word-break:break-all}
+    </style>
+</head>
+<body>
+
+<!-- 加载动画 -->
+<div class="loader-wrapper" id="loaderWrapper">
+    <div class="loader"></div>
+</div>
+
+<div class="browser-overlay" id="browserOverlay">
+    <div class="overlay-box">
+        <h2>请在浏览器打开</h2>
+        <p>为了正常使用功能，请复制下方链接，粘贴到手机浏览器打开</p>
+        <div class="copy-link-box">rgstratix.pages.dev</div>
+        <button class="btn" id="copyBtn"><span>复制链接</span></button>
+    </div>
+</div>
+
+<div class="bg-blur"></div>
+<canvas class="web-bg" id="webBg"></canvas>
+
+<div class="container">
+    <div class="top-bar" id="topBar">
+        <h1 id="globalTitle">绕过Stratix注入检测</h1>
+    </div>
+    <div class="hero">
+        <h1 id="mainTitle"></h1>
+        <div class="eng-sub">The Best Stratix Bypass Solution</div>
+        <p id="subtitle">最强Stratix解决方案</p>
+        <div class="advantage-line" id="advantageType"></div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn" id="getBtn"><span>前往获取</span></button>
+    </div>
+
+    <div class="features">
+        <h2 id="featuresTitle">为何选择我们？</h2>
+        <div class="feature-list" id="featureList">
+            <div class="feature-item"><h3>完美绕过</h3><p>一点都检测不到</p></div>
+            <div class="feature-item"><h3>超低价格</h3><p>不超过5RMB</p></div>
+            <div class="feature-item"><h3>自动售卖</h3><p>无需等待</p></div>
+            <div class="feature-item"><h3>用户较多</h3><p>30+用户</p></div>
+            <div class="feature-item"><h3>极其稳定</h3><p>比虚拟机 XP沙盒稳定高效</p></div>
+            <div class="feature-item"><h3>超棒售后</h3><p>一对一解答，问题秒处理</p></div>
+            <div class="feature-item"><h3>开放代理</h3><p>免费合作，轻松赚钱</p></div>
+            <div class="feature-item"><h3>教程详细</h3><p>小白也能一键上手</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 工具函数
+const delay = ms => new Promise(r => setTimeout(r, ms));
+const $ = id => document.getElementById(id);
+
+// ========== 加载完成逻辑 ==========
+function finishLoading() {
+    const loader = $('loaderWrapper');
+    const container = document.querySelector('.container');
+    const topBar = $('topBar');
+
+    // 加载页放大消失
+    loader.classList.add('fade-out');
+    
+    // 显示页面
+    setTimeout(() => {
+        container.style.opacity = 1;
+        container.style.visibility = 'visible';
+        topBar.style.visibility = 'visible';
+    }, 100);
+}
+
+// 页面完全加载后执行
+window.addEventListener('load', finishLoading);
+
+// 浏览器检测
+function checkBrowser() {
+    const u = navigator.userAgent.toLowerCase();
+    const isWeChat = u.includes('micromessenger');
+    const isQQ = u.includes(' qq') || u.includes('txmini');
+    const isQQBrowser = u.includes('qqbrowser');
+    if (isWeChat || isQQ || isQQBrowser) {
+        $('browserOverlay').classList.add('show');
+    }
+}
+
+// 复制
+$('copyBtn').addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText('rgstratix.pages.dev');
+        const span = $('copyBtn').querySelector('span');
+        span.textContent = '复制成功！';
+        await delay(1500);
+        span.textContent = '复制链接';
+    } catch (e) {
+        console.warn('复制失败', e);
+    }
+});
+
+// 蜘蛛网画布
+const canvas = $('webBg');
+const ctx = canvas.getContext('2d');
+let points = [];
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initPoints();
+}
+
+function initPoints() {
+    points = Array.from({ length: 40 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3
+    }));
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+
+    points.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+    });
+
+    for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+            const dx = points[i].x - points[j].x;
+            const dy = points[i].y - points[j].y;
+            const d = Math.hypot(dx, dy);
+            if (d < 160) {
+                ctx.beginPath();
+                ctx.moveTo(points[i].x, points[i].y);
+                ctx.lineTo(points[j].x, points[j].y);
+                ctx.stroke();
+            }
+        }
+    }
+    requestAnimationFrame(draw);
+}
+
+// 滚动显示顶部栏
+window.addEventListener('scroll', () => {
+    $('topBar').classList.toggle('show', window.scrollY > 60);
+});
+
+// 特性滚动动画
+const items = document.querySelectorAll('.feature-item');
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => e.target.classList.toggle('show', e.isIntersecting));
+}, { threshold: 0.1 });
+items.forEach(it => observer.observe(it));
+
+// 按钮涟漪
+$('getBtn').addEventListener('click', e => {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = $('getBtn').getBoundingClientRect();
+    ripple.style.left = `${e.clientX - rect.left}px`;
+    ripple.style.top = `${e.clientY - rect.top}px`;
+    $('getBtn').appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+    window.location.href = 'https://www.youbaopu.com/item/axa7ka';
+});
+
+// 点击粒子
+document.addEventListener('click', e => {
+    for (let i = 0; i < 8; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = `${e.clientX}px`;
+        p.style.top = `${e.clientY}px`;
+        const angle = (Math.PI * 2 * i) / 8;
+        const dist = 35 + Math.random() * 25;
+        p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+        p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 850);
+    }
+});
+
+// 打字机：主标题
+async function typeTitle() {
+    const t = $('mainTitle');
+    const line1 = '绕过Stratix';
+    const line2 = '注入检测';
+    t.innerHTML = '';
+    for (const c of line1) {
+        t.innerHTML += c;
+        await delay(60);
+    }
+    t.innerHTML += '<br>';
+    for (const c of line2) {
+        t.innerHTML += c;
+        await delay(60);
+    }
+    const cur = document.createElement('span');
+    cur.className = 'type-cursor';
+    t.appendChild(cur);
+    await delay(1200);
+    cur.remove();
+}
+
+// 打字机：优势循环
+async function typeAdvantage() {
+    const el = $('advantageType');
+    const list = ["注入无检测", "稳定不闪退", "全设备兼容", "自动秒发货"];
+    while (true) {
+        for (const str of list) {
+            // 打字
+            for (let i = 0; i <= str.length; i++) {
+                el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
+                await delay(70);
+            }
+            await delay(1600);
+            // 删除
+            for (let i = str.length; i >= 0; i--) {
+                el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
+                await delay(40);
+            }
+            await delay(300);
+        }
+    }
+}
+
+// 初始化
+window.addEventListener('resize', resize);
+resize();
+draw();
+checkBrowser();
+
+setTimeout(async () => {
+    await typeTitle();
+    typeAdvantage();
+}, 300);
+</script>
+</body>
+</html>
