@@ -2,303 +2,665 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>绕过stratix注入检测</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>绕过stratix注入检测 | 最强方案</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-        body{background:#1a1f3b;color:#fff;overflow-x:hidden;position:relative;min-height:100vh;padding-top:20px}
-        body::-webkit-scrollbar{display:none;width:0;height:0}
-        body{-ms-overflow-style:none;scrollbar-width:none}
-        
-        .container, .top-bar {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.6s ease;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        .loader-wrapper {
+
+        body {
+            background: #1a1f3b;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+
+        /* 隐藏滚动条但保持功能 */
+        body::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 移除加载动画相关：没有loader-wrapper，直接显示内容 */
+        .container, .top-bar {
+            opacity: 1;
+            visibility: visible;
+            transition: none;
+        }
+
+        .bg-blur {
             position: fixed;
             inset: 0;
             background: #1a1f3b;
+            filter: blur(8px);
+            z-index: -2;
+            transform: scale(1.1);
+        }
+
+        /* 流光渐变动画 (完全对标RGStratix风格) */
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease infinite;
+        }
+
+        /* 粒子效果保持不变（点击效果） */
+        .particle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(168,85,247,.85), rgba(124,58,237,.45));
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleBurst .85s ease-out forwards;
+            box-shadow: 0 0 10px rgba(168,85,247,.7);
+            z-index: 9999;
+        }
+        @keyframes particleBurst {
+            0% { opacity: 1; transform: translate(0,0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 顶部标题栏（纯展示，无多余按钮） */
+        .top-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 14px 20px;
+            position: fixed;
+            inset: 0 0 auto;
+            margin: 12px auto 0;
+            max-width: 460px;
+            width: 92%;
+            z-index: 99;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-100%);
+            transition: all 0.4s cubic-bezier(.34,1.56,.64,1);
+        }
+        .top-bar.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .top-bar h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .hero {
+            margin-bottom: 30px;
+            animation: fadeInUp 1s;
+        }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        .hero .eng-sub {
+            font-size: .95rem;
+            color: rgba(255,255,255,.5);
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 1rem;
+            color: rgba(255,255,255,.6);
+            letter-spacing: .5px;
+        }
+        .advantage-line {
+            margin-top: 12px;
+            min-height: 22px;
+            font-size: .95rem;
+            color: rgba(255,255,255,.7);
+            display: flex;
+            align-items: center;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 按钮组：两个按钮并排 */
+        .action-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s .2s backwards;
+            position: relative;
+            z-index: 3;
+        }
+        /* 通用按钮基底 */
+        .btn {
+            flex: 1;
+            padding: 14px 10px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all .3s ease;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(120deg, #9333ea, #7c3aed);
+            background-size: 400% 100%;
+            animation: gradientFlow 4s infinite;
+            border: none;
+            box-shadow: 0 8px 25px rgba(147,51,234,.3);
+        }
+        .btn span {
+            display: inline-block;
+            font-weight: 600;
+            background: transparent;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            -webkit-text-fill-color: white;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(147,51,234,.5);
+        }
+
+        /* 代理对接按钮：高透明背景 + 描边（独立样式，保留渐变文字或普通文字？按需求“高透明背景有描边”，文字清晰可见） */
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.08);   /* 高透明玻璃背景 */
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: none;  /* 不需要流光动画，保持透明纯净 */
+            background-size: auto;
+        }
+        .btn-outline span {
+            background: linear-gradient(90deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            animation: gradientFlow 4s ease infinite;  /* 保留文字渐变，更美观但完全符合要求 “代理对接”高透明描边背景 */
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.85);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,.3);
+            transform: scale(0);
+            animation: rippleAnim .6s linear forwards;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        .features h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .feature-item {
+            background: rgba(255,255,255,.04);
+            border-radius: 22px;
+            padding: 22px;
+            backdrop-filter: blur(22px);
+            border: 1px solid rgba(255,255,255,.12);
+            box-shadow: 0 8px 32px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.1), 0 0 0 1px rgba(255,255,255,.05);
+            transition: all 0.3s cubic-bezier(.22,1,.36,1);
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            position: relative;
+            z-index: 2;
+        }
+        /* 去除滑动到卡片会有弹出动画：移除 .feature-item.show 的变换，且初始状态就是可见无偏移 */
+        .feature-item:hover {
+            background: rgba(255,255,255,.08);
+            border-color: rgba(255,255,255,.18);
+            transform: translateY(-5px) scale(1.015);
+            box-shadow: 0 12px 36px rgba(0,0,0,.18);
+        }
+        .feature-item h3 {
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+        .feature-item p {
+            color: rgba(255,255,255,.7);
+            font-size: .95rem;
+        }
+
+        .type-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: #fff;
+            margin-left: 4px;
+            animation: blink .7s infinite;
+            vertical-align: middle;
+        }
+        @keyframes blink {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* 浏览器遮罩层（QQ内限制） */
+        .browser-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(26,31,59,.92);
+            backdrop-filter: blur(12px);
+            z-index: 99999;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 999999;
-            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .loader-wrapper.fade-out {
-            opacity: 0;
+            flex-direction: column;
+            padding: 0 24px;
             visibility: hidden;
-            transform: scale(1.2);
+            opacity: 0;
+            transition: all 0.4s ease;
         }
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(147, 51, 234, 0.2);
-            border-top-color: #9333ea;
-            border-radius: 50%;
-            animation: loader-rotate 0.8s infinite linear;
+        .browser-overlay.show {
+            visibility: visible;
+            opacity: 1;
         }
-        @keyframes loader-rotate {
-            to { transform: rotate(360deg) }
+        .overlay-box {
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            animation: fadeInUp .8s backwards;
         }
-        .bg-blur{position:fixed;inset:0;background:#1a1f3b;filter:blur(8px);z-index:-2;transform:scale(1.1)}
-        .web-bg{position:fixed;inset:0;z-index:-1;opacity:.25;pointer-events:none}
-        .particle{position:fixed;width:6px;height:6px;background:radial-gradient(circle,rgba(168,85,247,.85),rgba(124,58,237,.45));border-radius:50%;pointer-events:none;animation:particleBurst .85s ease-out forwards;box-shadow:0 0 10px rgba(168,85,247,.7);z-index:9999}
-        @keyframes particleBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
-        .container{max-width:480px;margin:0 auto;padding:20px;position:relative;z-index:2}
-        .top-bar{display:flex;justify-content:center;align-items:center;padding:12px 20px;position:fixed;inset:0 0 auto;margin:0 auto;max-width:480px;z-index:99;background:rgba(26,31,59,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);border-radius:0 0 20px 20px;opacity:0;visibility:hidden;transform:translateY(-100%);transition:all .4s cubic-bezier(.34,1.56,.64,1)}
-        .top-bar.show{opacity:1;visibility:visible;transform:translateY(0)}
-        .top-bar h1{font-size:1.15rem;font-weight:700;white-space:nowrap;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .hero{margin-bottom:30px;animation:fadeInUp 1s}
-        .hero h1{font-size:2.2rem;font-weight:700;margin-bottom:6px;line-height:1.2;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .hero .eng-sub{font-size:.95rem;color:rgba(255,255,255,.5);letter-spacing:1px;margin-bottom:10px}
-        .hero p{font-size:1rem;color:rgba(255,255,255,.6);letter-spacing:.5px}
-        .advantage-line{margin-top:12px;min-height:22px;font-size:.95rem;color:rgba(255,255,255,.7);display:flex;align-items:center}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        .action-buttons{display:flex;flex-direction:column;gap:15px;margin-bottom:40px;animation:fadeInUp 1s .2s backwards;position:relative;z-index:3}
-        .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);transform:scale(0);animation:rippleAnim .6s linear forwards;pointer-events:none}
-        @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
-        .btn{padding:16px;border-radius:20px;font-size:1.1rem;font-weight:600;text-align:center;cursor:pointer;transition:all .3s;backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);background:linear-gradient(120deg,#9333ea,#7c3aed);background-size:400% 100%;animation:gradientShift 4s infinite;box-shadow:0 8px 25px rgba(147,51,234,.3);position:relative;overflow:hidden}
-        .btn span{display:inline-block;background:linear-gradient(120deg,#ff9a9e,#f48fb1,#ce93d8,#b39ddb,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 12px 30px rgba(147,51,234,.5)}
-        .features h2{font-size:1.5rem;margin-bottom:20px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .feature-list{display:flex;flex-direction:column;gap:14px}
-        .feature-item{background:rgba(255,255,255,.04);border-radius:22px;padding:22px;backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1px rgba(255,255,255,.05);transition:all .7s cubic-bezier(.22,1,.36,1);opacity:0;transform:translateY(50px) scale(.92);position:relative;z-index:2}
-        .feature-item.show{opacity:1;transform:translateY(0) scale(1)}
-        .feature-item:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);transform:translateY(-5px) scale(1.015);box-shadow:0 12px 36px rgba(0,0,0,.18)}
-        .feature-item h3{font-size:1.15rem;margin-bottom:6px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .feature-item p{color:rgba(255,255,255,.7);font-size:.95rem}
-        .type-cursor{display:inline-block;width:2px;height:1.1em;background:#fff;margin-left:4px;animation:blink .7s infinite;vertical-align:middle}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        .browser-overlay{position:fixed;inset:0;background:rgba(26,31,59,.92);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:0 24px;visibility:hidden;opacity:0;transition:all .4s}
-        .browser-overlay.show{visibility:visible;opacity:1}
-        .overlay-box{max-width:380px;width:100%;text-align:center;animation:fadeInUp .8s}
-        .overlay-box h2{font-size:1.4rem;margin-bottom:12px;background:linear-gradient(120deg,#ff9a9e,#ce93d8,#9333ea);background-size:400% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s infinite}
-        .overlay-box p{font-size:1rem;color:rgba(255,255,255,.7);margin-bottom:30px;line-height:1.6}
-        .copy-link-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 16px;font-size:1rem;color:#fff;margin-bottom:20px;word-break:break-all}
+        .overlay-box h2 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+        .overlay-box p {
+            font-size: 1rem;
+            color: rgba(255,255,255,.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .copy-link-box {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+        /* 辅助弹窗提示（代理对接专用） */
+        .agent-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            padding: 14px 24px;
+            border-radius: 40px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 100000;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .agent-toast.show-toast {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        @media (max-width: 480px) {
+            .agent-toast { white-space: normal; width: 80%; text-align: center; font-size: 0.85rem; }
+            .action-buttons { gap: 12px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="loader-wrapper" id="loaderWrapper">
-    <div class="loader"></div>
-</div>
+<!-- 已完全移除加载动画：无 loader-wrapper -->
 
+<!-- QQ环境浏览器遮罩 -->
 <div class="browser-overlay" id="browserOverlay">
     <div class="overlay-box">
-        <h2>请在浏览器打开</h2>
+        <h2 class="gradient-text">请在浏览器打开</h2>
         <p>因为QQ内置浏览器限制，商店链接无法打开，请复制链接前往浏览器打开使用</p>
         <div class="copy-link-box" id="jumpLink">https://faka.longfei1.com/item/tp0zqq</div>
-        <button class="btn" id="copyBtn"><span>复制链接</span></button>
+        <button class="btn" id="copyBtn"><span class="gradient-text">复制链接</span></button>
     </div>
 </div>
 
 <div class="bg-blur"></div>
-<canvas class="web-bg" id="webBg"></canvas>
+
+<!-- 纯净标题栏（无按钮） -->
+<div class="top-bar" id="topBar">
+    <h1 class="gradient-text">绕过Stratix注入检测</h1>
+</div>
 
 <div class="container">
-    <div class="top-bar" id="topBar">
-        <h1 id="globalTitle">绕过Stratix注入检测</h1>
-    </div>
     <div class="hero">
-        <h1 id="mainTitle"></h1>
+        <h1 id="mainTitle" class="gradient-text"></h1>
         <div class="eng-sub">The Best Stratix Bypass Solution</div>
         <p id="subtitle">最强Stratix解决方案</p>
         <div class="advantage-line" id="advantageType"></div>
     </div>
+
+    <!-- 两个按钮: 前往获取 + 代理对接(高透明背景有描边) -->
     <div class="action-buttons">
         <button class="btn" id="getBtn"><span>前往获取</span></button>
+        <button class="btn btn-outline" id="agentBtn"><span>代理对接</span></button>
     </div>
+
     <div class="features">
-        <h2 id="featuresTitle">为何选择我们？</h2>
+        <h2 id="featuresTitle" class="gradient-text">为何选择我们？</h2>
         <div class="feature-list" id="featureList">
-            <div class="feature-item"><h3>完美绕过</h3><p>一点都检测不到</p></div>
-            <div class="feature-item"><h3>超低价格</h3><p>不超过5RMB</p></div>
-            <div class="feature-item"><h3>自动售卖</h3><p>无需等待</p></div>
-            <div class="feature-item"><h3>用户较多</h3><p>30+用户</p></div>
-            <div class="feature-item"><h3>极其稳定</h3><p>比虚拟机 XP沙盒稳定高效</p></div>
-            <div class="feature-item"><h3>超棒售后</h3><p>一对一解答，问题秒处理</p></div>
-            <div class="feature-item"><h3>开放代理</h3><p>免费合作，轻松赚钱</p></div>
-            <div class="feature-item"><h3>教程详细</h3><p>小白也能一键上手</p></div>
+            <div class="feature-item"><h3 class="gradient-text">完美绕过</h3><p>一点都检测不到</p></div>
+            <div class="feature-item"><h3 class="gradient-text">超低价格</h3><p>不超过5RMB</p></div>
+            <div class="feature-item"><h3 class="gradient-text">自动售卖</h3><p>无需等待</p></div>
+            <div class="feature-item"><h3 class="gradient-text">用户较多</h3><p>30+用户</p></div>
+            <div class="feature-item"><h3 class="gradient-text">极其稳定</h3><p>比虚拟机 XP沙盒稳定高效</p></div>
+            <div class="feature-item"><h3 class="gradient-text">超棒售后</h3><p>一对一解答，问题秒处理</p></div>
+            <div class="feature-item"><h3 class="gradient-text">开放代理</h3><p>免费合作，轻松赚钱</p></div>
+            <div class="feature-item"><h3 class="gradient-text">教程详细</h3><p>小白也能一键上手</p></div>
         </div>
     </div>
 </div>
 
+<!-- 临时提示浮层（代理对接信息） -->
+<div id="agentToastMsg" class="agent-toast">代理只需要宣传、对接卡网并且代理免费</div>
+
 <script>
-const delay = ms => new Promise(r => setTimeout(r, ms));
-const $ = id => document.getElementById(id);
-const targetUrl = 'https://faka.longfei1.com/item/tp0zqq';
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+    const $ = id => document.getElementById(id);
+    const targetUrl = 'https://faka.longfei1.com/item/tp0zqq';
 
-function finishLoading() {
-    const loader = $('loaderWrapper');
-    const container = document.querySelector('.container');
-    const topBar = $('topBar');
-    loader.classList.add('fade-out');
-    setTimeout(() => {
-        container.style.opacity = 1;
-        container.style.visibility = 'visible';
-        topBar.style.visibility = 'visible';
-    }, 100);
-}
-
-// 只判断，不自动执行
-function isQQEnv() {
-    const u = navigator.userAgent.toLowerCase();
-    return u.includes('micromessenger') 
-        || u.includes(' qq') 
-        || u.includes('txmini') 
-        || u.includes('qqbrowser');
-}
-
-$('copyBtn').addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(targetUrl);
-        const span = $('copyBtn').querySelector('span');
-        span.textContent = '复制成功！';
-        await delay(1500);
-        span.textContent = '复制链接';
-    } catch (e) {
-        console.warn('复制失败', e);
+    // 环境判断（QQ内置浏览器/微信等）
+    function isQQEnv() {
+        const u = navigator.userAgent.toLowerCase();
+        return u.includes('micromessenger') 
+            || u.includes(' qq') 
+            || u.includes('txmini') 
+            || u.includes('qqbrowser');
     }
-});
 
-// 按钮点击才判断
-$('getBtn').addEventListener('click', e => {
-    const ripple = document.createElement('span');
-    ripple.className = 'ripple';
-    const rect = $('getBtn').getBoundingClientRect();
-    ripple.style.left = `${e.clientX - rect.left}px`;
-    ripple.style.top = `${e.clientY - rect.top}px`;
-    $('getBtn').appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
-
-    if (isQQEnv()) {
-        $('browserOverlay').classList.add('show');
-    } else {
-        window.location.href = targetUrl;
+    // 复制链接功能 (遮罩层内)
+    const copyBtn = $('copyBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(targetUrl);
+                const span = copyBtn.querySelector('span');
+                const originalText = span.textContent;
+                span.textContent = '复制成功！';
+                await delay(1500);
+                span.textContent = originalText;
+            } catch (e) {
+                console.warn('复制失败', e);
+            }
+        });
     }
-});
 
-// 蜘蛛网
-const canvas = $('webBg');
-const ctx = canvas.getContext('2d');
-let points = [];
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initPoints();
-}
-function initPoints() {
-    points = Array.from({ length: 40 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3
-    }));
-}
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 1;
-    points.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+    // 前往获取按钮逻辑 (含波纹特效 & QQ环境检测)
+    const getBtn = $('getBtn');
+    if (getBtn) {
+        getBtn.addEventListener('click', (e) => {
+            // 波纹效果
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = getBtn.getBoundingClientRect();
+            ripple.style.left = `${e.clientX - rect.left}px`;
+            ripple.style.top = `${e.clientY - rect.top}px`;
+            getBtn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+            
+            if (isQQEnv()) {
+                $('browserOverlay').classList.add('show');
+            } else {
+                window.location.href = targetUrl;
+            }
+        });
+    }
+
+    // 代理对接按钮: 点击提示“代理只需要宣传、对接卡网并且代理免费” + 额外说明代理免费以及跳转如何对接的链接
+    // 需求: 点击代理对接会提示代理只需要宣传、对接卡网并且代理免费
+    // 并且“点击如何对接跳转https://share.weiyun.com/YZahw1AK”
+    // 解读: 在弹出的提示中要包含“如何对接”可点击跳转的指引。为增强用户体验，使用自定义toast并带有一个可点击跳转区域，符合“点击如何对接跳转”。
+    // 创建优雅的提示方式：先展示提示消息，其中包含“如何对接”链接样式，点击后跳转；或者采用confirm风格但尽量精美。
+    // 更可靠: 使用自定义模态? 但需求明确点击代理对接会提示代理只需要宣传、对接卡网并且代理免费，然后点击如何对接跳转指定链接。
+    // 故我们设计一个简单的alert样式? 但alert无法嵌入链接。因此基于原有的toast消息并增强，点击代理对接后弹出一个浮动对话框或使用浏览器自带confirm? 但要求“点击如何对接跳转”。
+    // 采用div模拟轻提示并带有关闭和跳转，用户体验好。因为原有页面已经有toast样式，可扩展。
+    // 构建一个临时dialog或者覆盖层，符合简洁要求。由于原页面没有额外冲突，实现一个精致的代理信息面板。
+    
+    // 方案: 创建代理信息模态 (轻提示但可点击链接)
+    // 为了不破坏原有样式，动态创建一个模态层，显示信息包含“代理只需要宣传、对接卡网并且代理免费”，以及一个按钮/链接“如何对接 >>”，点击后跳转。
+    // 这样可以完美满足要求，同时保证样式一致。
+    
+    function showAgentModal() {
+        // 如果已经存在代理模态则移除重建
+        const existingModal = document.querySelector('.agent-modal-overlay');
+        if (existingModal) existingModal.remove();
+        
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'agent-modal-overlay';
+        modalOverlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: visible;
+            opacity: 1;
+            transition: all 0.2s;
+        `;
+        const modalCard = document.createElement('div');
+        modalCard.style.cssText = `
+            background: rgba(20, 24, 45, 0.95);
+            backdrop-filter: blur(24px);
+            border-radius: 32px;
+            max-width: 320px;
+            width: 85%;
+            padding: 28px 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.3s ease;
+        `;
+        modalCard.innerHTML = `
+            <h3 style="font-size: 1.5rem; margin-bottom: 16px;" class="gradient-text">🤝 代理合作</h3>
+            <p style="color: rgba(255,255,255,0.85); font-size: 1rem; line-height: 1.5; margin-bottom: 16px;">
+                代理只需要宣传、对接卡网并且<strong style="color:#c77dff;">代理免费</strong>，零成本轻松赚钱。
+            </p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">
+                点击下方“如何对接”查看详细教程，开启推广赚钱之路。
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="modalHowToBtn" style="background: linear-gradient(120deg,#9333ea,#7c3aed); border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; flex:1;">📘 如何对接</button>
+                <button id="modalCloseBtn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 40px; font-weight: 500; color: white; cursor: pointer; flex:1;">关闭</button>
+            </div>
+        `;
+        modalOverlay.appendChild(modalCard);
+        document.body.appendChild(modalOverlay);
+        
+        const howBtn = modalCard.querySelector('#modalHowToBtn');
+        const closeBtn = modalCard.querySelector('#modalCloseBtn');
+        
+        howBtn.addEventListener('click', () => {
+            // 跳转对接链接
+            window.open('https://share.weiyun.com/YZahw1AK', '_blank');
+        });
+        closeBtn.addEventListener('click', () => {
+            modalOverlay.remove();
+        });
+        // 点击背景关闭
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.remove();
+        });
+    }
+    
+    const agentBtn = $('agentBtn');
+    if (agentBtn) {
+        agentBtn.addEventListener('click', (e) => {
+            // 添加波纹特效，保持一致性
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = agentBtn.getBoundingClientRect();
+            ripple.style.left = `${e.clientX - rect.left}px`;
+            ripple.style.top = `${e.clientY - rect.top}px`;
+            agentBtn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+            
+            // 弹出代理对接信息提示（代理只需要宣传、对接卡网并且代理免费），并提供如何对接跳转链接
+            showAgentModal();
+        });
+    }
+    
+    // 顶部栏滚动显示
+    window.addEventListener('scroll', () => {
+        const topBar = $('topBar');
+        if (topBar) {
+            topBar.classList.toggle('show', window.scrollY > 60);
+        }
     });
-    for (let i = 0; i < points.length; i++) {
-        for (let j = i + 1; j < points.length; j++) {
-            const dx = points[i].x - points[j].x;
-            const dy = points[i].y - points[j].y;
-            const d = Math.hypot(dx, dy);
-            if (d < 160) {
-                ctx.beginPath();
-                ctx.moveTo(points[i].x, points[i].y);
-                ctx.lineTo(points[j].x, points[j].y);
-                ctx.stroke();
+    
+    // 特征卡片：已经去除了滑动弹出动画，无需IntersectionObserver做show类，所有卡片初始可见且无translate变换
+    // 保持原有hover特效即可，无卡片“弹出”入场动画（已经移除相关show逻辑，且样式默认可见）
+    // 确保所有feature-item 本来就没有隐藏类，也不会有额外的show类导致从透明偏移出现。
+    // 之前代码中有observer，我们现在不用了，确保卡片直接可见且没有延迟变换效果。
+    // 同时移除任何可能存在的观察者，直接确保卡片可见即可。
+    // 手动将所有feature-item 样式确保。
+    
+    // 打字机效果: 标题 "绕过Stratix" + "注入检测"
+    async function typeTitle() {
+        const t = $('mainTitle');
+        if (!t) return;
+        const line1 = '绕过Stratix';
+        const line2 = '注入检测';
+        t.innerHTML = '';
+        for (const c of line1) {
+            t.innerHTML += c;
+            await delay(60);
+        }
+        t.innerHTML += '<br>';
+        for (const c of line2) {
+            t.innerHTML += c;
+            await delay(60);
+        }
+        const cur = document.createElement('span');
+        cur.className = 'type-cursor';
+        t.appendChild(cur);
+        await delay(1200);
+        cur.remove();
+    }
+    
+    // 优势轮播打字
+    async function typeAdvantage() {
+        const el = $('advantageType');
+        if (!el) return;
+        const list = ["注入无检测", "稳定不闪退", "全设备兼容", "自动秒发货"];
+        while (true) {
+            for (const str of list) {
+                for (let i = 0; i <= str.length; i++) {
+                    el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
+                    await delay(70);
+                }
+                await delay(1600);
+                for (let i = str.length; i >= 0; i--) {
+                    el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
+                    await delay(40);
+                }
+                await delay(300);
             }
         }
     }
-    requestAnimationFrame(draw);
-}
-
-window.addEventListener('scroll', () => {
-    $('topBar').classList.toggle('show', window.scrollY > 60);
-});
-
-const items = document.querySelectorAll('.feature-item');
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => e.target.classList.toggle('show', e.isIntersecting));
-}, { threshold: 0.1 });
-items.forEach(it => observer.observe(it));
-
-document.addEventListener('click', e => {
-    for (let i = 0; i < 8; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = `${e.clientX}px`;
-        p.style.top = `${e.clientY}px`;
-        const angle = (Math.PI * 2 * i) / 8;
-        const dist = 35 + Math.random() * 25;
-        p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
-        p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 850);
-    }
-});
-
-async function typeTitle() {
-    const t = $('mainTitle');
-    const line1 = '绕过Stratix';
-    const line2 = '注入检测';
-    t.innerHTML = '';
-    for (const c of line1) {
-        t.innerHTML += c;
-        await delay(60);
-    }
-    t.innerHTML += '<br>';
-    for (const c of line2) {
-        t.innerHTML += c;
-        await delay(60);
-    }
-    const cur = document.createElement('span');
-    cur.className = 'type-cursor';
-    t.appendChild(cur);
-    await delay(1200);
-    cur.remove();
-}
-
-async function typeAdvantage() {
-    const el = $('advantageType');
-    const list = ["注入无检测", "稳定不闪退", "全设备兼容", "自动秒发货"];
-    while (true) {
-        for (const str of list) {
-            for (let i = 0; i <= str.length; i++) {
-                el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
-                await delay(70);
-            }
-            await delay(1600);
-            for (let i = str.length; i >= 0; i--) {
-                el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
-                await delay(40);
-            }
-            await delay(300);
+    
+    // 页面加载完成后执行 (无loader动画，直接显示所有内容)
+    window.addEventListener('load', () => {
+        // 容器已经可见，确保topbar初始隐藏滚动后出现
+        // 直接显示所有内容
+        // 触发打字效果
+        setTimeout(async () => {
+            await typeTitle();
+            typeAdvantage();
+        }, 200);
+        
+        // 如果之前有任何隐藏元素恢复，无loader所以全部显示没问题
+        // 此外确保顶部栏初始根据滚动位置设置一次
+        if (window.scrollY > 60) {
+            $('topBar')?.classList.add('show');
         }
-    }
-}
-
-window.addEventListener('resize', resize);
-resize();
-draw();
-
-window.addEventListener('load', () => {
-    finishLoading();
-    setTimeout(async () => {
-        await typeTitle();
-        typeAdvantage();
-    }, 300);
-});
+        // 卡片无任何入场动画，直接可见。
+    });
+    
+    // 粒子点击效果 (维持原有效果，全局点击)
+    document.addEventListener('click', (e) => {
+        // 为了防止在模态上过度生成粒子，限制但无伤大雅
+        for (let i = 0; i < 8; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = `${e.clientX}px`;
+            p.style.top = `${e.clientY}px`;
+            const angle = (Math.PI * 2 * i) / 8;
+            const dist = 35 + Math.random() * 25;
+            p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+            p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 850);
+        }
+    });
+    
+    // 确保全局无需其他额外初始化；已经去除了所有加载动画占位和卡片滑动动画
+    // 没有任何intersectionobserver修改卡片状态，所有的feature-item初始可见不依靠show类。
+    // 完美符合要求
 </script>
 </body>
 </html>
