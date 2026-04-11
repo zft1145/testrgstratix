@@ -10,14 +10,11 @@
         body::-webkit-scrollbar{display:none;width:0;height:0}
         body{-ms-overflow-style:none;scrollbar-width:none}
         
-        /* 全局默认隐藏，等加载完显示 */
         .container, .top-bar {
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.6s ease;
         }
-
-        /* 加载遮罩 */
         .loader-wrapper {
             position: fixed;
             inset: 0;
@@ -28,14 +25,11 @@
             z-index: 999999;
             transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        /* 加载消失：中心放大淡出 */
         .loader-wrapper.fade-out {
             opacity: 0;
             visibility: hidden;
             transform: scale(1.2);
         }
-
-        /* 加载圈 */
         .loader {
             width: 50px;
             height: 50px;
@@ -47,7 +41,6 @@
         @keyframes loader-rotate {
             to { transform: rotate(360deg) }
         }
-
         .bg-blur{position:fixed;inset:0;background:#1a1f3b;filter:blur(8px);z-index:-2;transform:scale(1.1)}
         .web-bg{position:fixed;inset:0;z-index:-1;opacity:.25;pointer-events:none}
         .particle{position:fixed;width:6px;height:6px;background:radial-gradient(circle,rgba(168,85,247,.85),rgba(124,58,237,.45));border-radius:50%;pointer-events:none;animation:particleBurst .85s ease-out forwards;box-shadow:0 0 10px rgba(168,85,247,.7);z-index:9999}
@@ -88,7 +81,6 @@
 </head>
 <body>
 
-<!-- 加载动画 -->
 <div class="loader-wrapper" id="loaderWrapper">
     <div class="loader"></div>
 </div>
@@ -96,8 +88,8 @@
 <div class="browser-overlay" id="browserOverlay">
     <div class="overlay-box">
         <h2>请在浏览器打开</h2>
-        <p>为了正常使用功能，请复制下方链接，粘贴到手机浏览器打开</p>
-        <div class="copy-link-box">rgstratix.pages.dev</div>
+        <p>因为QQ内置浏览器限制，商店链接无法打开，请复制链接前往浏览器打开使用</p>
+        <div class="copy-link-box" id="jumpLink">https://faka.longfei1.com/item/tp0zqq</div>
         <button class="btn" id="copyBtn"><span>复制链接</span></button>
     </div>
 </div>
@@ -115,11 +107,9 @@
         <p id="subtitle">最强Stratix解决方案</p>
         <div class="advantage-line" id="advantageType"></div>
     </div>
-
     <div class="action-buttons">
         <button class="btn" id="getBtn"><span>前往获取</span></button>
     </div>
-
     <div class="features">
         <h2 id="featuresTitle">为何选择我们？</h2>
         <div class="feature-list" id="featureList">
@@ -136,20 +126,15 @@
 </div>
 
 <script>
-// 工具函数
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const $ = id => document.getElementById(id);
+const targetUrl = 'https://faka.longfei1.com/item/tp0zqq';
 
-// ========== 加载完成逻辑 ==========
 function finishLoading() {
     const loader = $('loaderWrapper');
     const container = document.querySelector('.container');
     const topBar = $('topBar');
-
-    // 加载页放大消失
     loader.classList.add('fade-out');
-    
-    // 显示页面
     setTimeout(() => {
         container.style.opacity = 1;
         container.style.visibility = 'visible';
@@ -157,24 +142,18 @@ function finishLoading() {
     }, 100);
 }
 
-// 页面完全加载后执行
-window.addEventListener('load', finishLoading);
-
-// 浏览器检测
-function checkBrowser() {
+// 只判断，不自动执行
+function isQQEnv() {
     const u = navigator.userAgent.toLowerCase();
-    const isWeChat = u.includes('micromessenger');
-    const isQQ = u.includes(' qq') || u.includes('txmini');
-    const isQQBrowser = u.includes('qqbrowser');
-    if (isWeChat || isQQ || isQQBrowser) {
-        $('browserOverlay').classList.add('show');
-    }
+    return u.includes('micromessenger') 
+        || u.includes(' qq') 
+        || u.includes('txmini') 
+        || u.includes('qqbrowser');
 }
 
-// 复制
 $('copyBtn').addEventListener('click', async () => {
     try {
-        await navigator.clipboard.writeText('rgstratix.pages.dev');
+        await navigator.clipboard.writeText(targetUrl);
         const span = $('copyBtn').querySelector('span');
         span.textContent = '复制成功！';
         await delay(1500);
@@ -184,17 +163,32 @@ $('copyBtn').addEventListener('click', async () => {
     }
 });
 
-// 蜘蛛网画布
+// 按钮点击才判断
+$('getBtn').addEventListener('click', e => {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = $('getBtn').getBoundingClientRect();
+    ripple.style.left = `${e.clientX - rect.left}px`;
+    ripple.style.top = `${e.clientY - rect.top}px`;
+    $('getBtn').appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+
+    if (isQQEnv()) {
+        $('browserOverlay').classList.add('show');
+    } else {
+        window.location.href = targetUrl;
+    }
+});
+
+// 蜘蛛网
 const canvas = $('webBg');
 const ctx = canvas.getContext('2d');
 let points = [];
-
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     initPoints();
 }
-
 function initPoints() {
     points = Array.from({ length: 40 }, () => ({
         x: Math.random() * canvas.width,
@@ -203,19 +197,16 @@ function initPoints() {
         vy: (Math.random() - 0.5) * 0.3
     }));
 }
-
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = 'rgba(255,255,255,0.1)';
     ctx.lineWidth = 1;
-
     points.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
     });
-
     for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
             const dx = points[i].x - points[j].x;
@@ -232,31 +223,16 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// 滚动显示顶部栏
 window.addEventListener('scroll', () => {
     $('topBar').classList.toggle('show', window.scrollY > 60);
 });
 
-// 特性滚动动画
 const items = document.querySelectorAll('.feature-item');
 const observer = new IntersectionObserver(entries => {
     entries.forEach(e => e.target.classList.toggle('show', e.isIntersecting));
 }, { threshold: 0.1 });
 items.forEach(it => observer.observe(it));
 
-// 按钮涟漪
-$('getBtn').addEventListener('click', e => {
-    const ripple = document.createElement('span');
-    ripple.className = 'ripple';
-    const rect = $('getBtn').getBoundingClientRect();
-    ripple.style.left = `${e.clientX - rect.left}px`;
-    ripple.style.top = `${e.clientY - rect.top}px`;
-    $('getBtn').appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
-    window.location.href = 'https://faka.longfei1.com/item/tp0zqq';
-});
-
-// 点击粒子
 document.addEventListener('click', e => {
     for (let i = 0; i < 8; i++) {
         const p = document.createElement('div');
@@ -272,7 +248,6 @@ document.addEventListener('click', e => {
     }
 });
 
-// 打字机：主标题
 async function typeTitle() {
     const t = $('mainTitle');
     const line1 = '绕过Stratix';
@@ -294,19 +269,16 @@ async function typeTitle() {
     cur.remove();
 }
 
-// 打字机：优势循环
 async function typeAdvantage() {
     const el = $('advantageType');
     const list = ["注入无检测", "稳定不闪退", "全设备兼容", "自动秒发货"];
     while (true) {
         for (const str of list) {
-            // 打字
             for (let i = 0; i <= str.length; i++) {
                 el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
                 await delay(70);
             }
             await delay(1600);
-            // 删除
             for (let i = str.length; i >= 0; i--) {
                 el.innerHTML = str.slice(0, i) + '<span class="type-cursor"></span>';
                 await delay(40);
@@ -316,16 +288,17 @@ async function typeAdvantage() {
     }
 }
 
-// 初始化
 window.addEventListener('resize', resize);
 resize();
 draw();
-checkBrowser();
 
-setTimeout(async () => {
-    await typeTitle();
-    typeAdvantage();
-}, 300);
+window.addEventListener('load', () => {
+    finishLoading();
+    setTimeout(async () => {
+        await typeTitle();
+        typeAdvantage();
+    }, 300);
+});
 </script>
 </body>
 </html>
