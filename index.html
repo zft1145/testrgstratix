@@ -32,7 +32,6 @@
             scrollbar-width: none;
         }
 
-        /* 移除加载动画相关：没有loader-wrapper，直接显示内容 */
         .container, .top-bar {
             opacity: 1;
             visibility: visible;
@@ -256,7 +255,6 @@
             position: relative;
             z-index: 2;
         }
-        /* 去除滑动到卡片会有弹出动画：移除 .feature-item.show 的变换，且初始状态就是可见无偏移 */
         .feature-item:hover {
             background: rgba(255,255,255,.08);
             border-color: rgba(255,255,255,.18);
@@ -332,7 +330,7 @@
             margin-bottom: 20px;
             word-break: break-all;
         }
-        /* 辅助弹窗提示（代理对接专用） */
+        /* 移除旧代理toast相关样式，因为改为跳转页面不再需要复杂弹窗，但保留部分旧样式以防残留 */
         .agent-toast {
             position: fixed;
             bottom: 30px;
@@ -392,7 +390,7 @@
         <div class="advantage-line" id="advantageType"></div>
     </div>
 
-    <!-- 两个按钮: 前往获取 + 代理对接(高透明背景有描边) -->
+    <!-- 两个按钮: 前往获取 + 代理对接(高透明背景有描边) 代理对接点击直接跳转 agent.html -->
     <div class="action-buttons">
         <button class="btn" id="getBtn"><span>前往获取</span></button>
         <button class="btn btn-outline" id="agentBtn"><span>代理对接</span></button>
@@ -413,13 +411,12 @@
     </div>
 </div>
 
-<!-- 临时提示浮层（代理对接信息） -->
-<div id="agentToastMsg" class="agent-toast">代理只需要宣传、对接卡网并且代理免费</div>
-
 <script>
     const delay = ms => new Promise(r => setTimeout(r, ms));
     const $ = id => document.getElementById(id);
     const targetUrl = 'https://faka.longfei1.com/item/tp0zqq';
+    // 代理对接跳转目标页面
+    const agentPageUrl = 'agent.html';
 
     // 环境判断（QQ内置浏览器/微信等）
     function isQQEnv() {
@@ -468,89 +465,12 @@
         });
     }
 
-    // 代理对接按钮: 点击提示“代理只需要宣传、对接卡网并且代理免费” + 额外说明代理免费以及跳转如何对接的链接
-    // 需求: 点击代理对接会提示代理只需要宣传、对接卡网并且代理免费
-    // 并且“点击如何对接跳转https://share.weiyun.com/YZahw1AK”
-    // 解读: 在弹出的提示中要包含“如何对接”可点击跳转的指引。为增强用户体验，使用自定义toast并带有一个可点击跳转区域，符合“点击如何对接跳转”。
-    // 创建优雅的提示方式：先展示提示消息，其中包含“如何对接”链接样式，点击后跳转；或者采用confirm风格但尽量精美。
-    // 更可靠: 使用自定义模态? 但需求明确点击代理对接会提示代理只需要宣传、对接卡网并且代理免费，然后点击如何对接跳转指定链接。
-    // 故我们设计一个简单的alert样式? 但alert无法嵌入链接。因此基于原有的toast消息并增强，点击代理对接后弹出一个浮动对话框或使用浏览器自带confirm? 但要求“点击如何对接跳转”。
-    // 采用div模拟轻提示并带有关闭和跳转，用户体验好。因为原有页面已经有toast样式，可扩展。
-    // 构建一个临时dialog或者覆盖层，符合简洁要求。由于原页面没有额外冲突，实现一个精致的代理信息面板。
-    
-    // 方案: 创建代理信息模态 (轻提示但可点击链接)
-    // 为了不破坏原有样式，动态创建一个模态层，显示信息包含“代理只需要宣传、对接卡网并且代理免费”，以及一个按钮/链接“如何对接 >>”，点击后跳转。
-    // 这样可以完美满足要求，同时保证样式一致。
-    
-    function showAgentModal() {
-        // 如果已经存在代理模态则移除重建
-        const existingModal = document.querySelector('.agent-modal-overlay');
-        if (existingModal) existingModal.remove();
-        
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = 'agent-modal-overlay';
-        modalOverlay.style.cssText = `
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            visibility: visible;
-            opacity: 1;
-            transition: all 0.2s;
-        `;
-        const modalCard = document.createElement('div');
-        modalCard.style.cssText = `
-            background: rgba(20, 24, 45, 0.95);
-            backdrop-filter: blur(24px);
-            border-radius: 32px;
-            max-width: 320px;
-            width: 85%;
-            padding: 28px 24px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 25px 40px rgba(0,0,0,0.5);
-            animation: fadeInUp 0.3s ease;
-        `;
-        modalCard.innerHTML = `
-            <h3 style="font-size: 1.5rem; margin-bottom: 16px;" class="gradient-text">🤝 代理合作</h3>
-            <p style="color: rgba(255,255,255,0.85); font-size: 1rem; line-height: 1.5; margin-bottom: 16px;">
-                代理只需要宣传、对接卡网并且<strong style="color:#c77dff;">代理免费</strong>，零成本轻松赚钱。
-            </p>
-            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">
-                点击下方“如何对接”查看详细教程，开启推广赚钱之路。
-            </p>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <button id="modalHowToBtn" style="background: linear-gradient(120deg,#9333ea,#7c3aed); border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; flex:1;">📘 如何对接</button>
-                <button id="modalCloseBtn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 40px; font-weight: 500; color: white; cursor: pointer; flex:1;">关闭</button>
-            </div>
-        `;
-        modalOverlay.appendChild(modalCard);
-        document.body.appendChild(modalOverlay);
-        
-        const howBtn = modalCard.querySelector('#modalHowToBtn');
-        const closeBtn = modalCard.querySelector('#modalCloseBtn');
-        
-        howBtn.addEventListener('click', () => {
-            // 跳转对接链接
-            window.open('https://share.weiyun.com/YZahw1AK', '_blank');
-        });
-        closeBtn.addEventListener('click', () => {
-            modalOverlay.remove();
-        });
-        // 点击背景关闭
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) modalOverlay.remove();
-        });
-    }
-    
+    // 代理对接按钮: 修改为直接跳转 agent.html（完全按照要求：把点击代理对接弹窗改成跳转agent.html）
+    // 移除所有之前的弹窗/模态框逻辑，实现干净跳转，同时保留波纹效果和基础用户体验。
     const agentBtn = $('agentBtn');
     if (agentBtn) {
         agentBtn.addEventListener('click', (e) => {
-            // 添加波纹特效，保持一致性
+            // 添加波纹特效，保持视觉反馈一致性
             const ripple = document.createElement('span');
             ripple.className = 'ripple';
             const rect = agentBtn.getBoundingClientRect();
@@ -559,8 +479,9 @@
             agentBtn.appendChild(ripple);
             setTimeout(() => ripple.remove(), 600);
             
-            // 弹出代理对接信息提示（代理只需要宣传、对接卡网并且代理免费），并提供如何对接跳转链接
-            showAgentModal();
+            // 直接跳转至 agent.html 页面（当前目录下）
+            // 采用 window.location.href 实现页面跳转
+            window.location.href = agentPageUrl;
         });
     }
     
@@ -574,10 +495,6 @@
     
     // 特征卡片：已经去除了滑动弹出动画，无需IntersectionObserver做show类，所有卡片初始可见且无translate变换
     // 保持原有hover特效即可，无卡片“弹出”入场动画（已经移除相关show逻辑，且样式默认可见）
-    // 确保所有feature-item 本来就没有隐藏类，也不会有额外的show类导致从透明偏移出现。
-    // 之前代码中有observer，我们现在不用了，确保卡片直接可见且没有延迟变换效果。
-    // 同时移除任何可能存在的观察者，直接确保卡片可见即可。
-    // 手动将所有feature-item 样式确保。
     
     // 打字机效果: 标题 "绕过Stratix" + "注入检测"
     async function typeTitle() {
@@ -625,16 +542,13 @@
     
     // 页面加载完成后执行 (无loader动画，直接显示所有内容)
     window.addEventListener('load', () => {
-        // 容器已经可见，确保topbar初始隐藏滚动后出现
-        // 直接显示所有内容
         // 触发打字效果
         setTimeout(async () => {
             await typeTitle();
             typeAdvantage();
         }, 200);
         
-        // 如果之前有任何隐藏元素恢复，无loader所以全部显示没问题
-        // 此外确保顶部栏初始根据滚动位置设置一次
+        // 确保顶部栏初始根据滚动位置设置一次
         if (window.scrollY > 60) {
             $('topBar')?.classList.add('show');
         }
@@ -643,7 +557,7 @@
     
     // 粒子点击效果 (维持原有效果，全局点击)
     document.addEventListener('click', (e) => {
-        // 为了防止在模态上过度生成粒子，限制但无伤大雅
+        // 为了防止在按钮跳转时产生过多粒子但无伤大雅
         for (let i = 0; i < 8; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
@@ -658,9 +572,8 @@
         }
     });
     
-    // 确保全局无需其他额外初始化；已经去除了所有加载动画占位和卡片滑动动画
-    // 没有任何intersectionobserver修改卡片状态，所有的feature-item初始可见不依靠show类。
-    // 完美符合要求
+    // 增加一个简单的控制台友好提示，无其他副作用
+    console.log('页面已加载 | 代理对接按钮已改为直接跳转 agent.html');
 </script>
 </body>
 </html>

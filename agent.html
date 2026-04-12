@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>代理对接 | 等级说明</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 弹窗卡片 - 简洁干净 */
+        .agent-modal {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(26, 31, 59, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 28px 24px 32px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+            animation: fadeInScale 0.25s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.94);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 渐变文字 */
+        .gradient-text {
+            background: linear-gradient(90deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .agent-modal h2 {
+            font-size: 1.7rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .sub-message {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed rgba(255,255,255,0.15);
+        }
+
+        /* 等级卡片区域 */
+        .level-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .level-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .level-price {
+            background: rgba(147, 51, 234, 0.3);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(199, 125, 255, 0.4);
+        }
+
+        .level-desc {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .upgrade-rule {
+            font-size: 0.8rem;
+            color: #c77dff;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dotted rgba(255,255,255,0.1);
+        }
+
+        .highlight {
+            color: #ffd6a5;
+            font-weight: 600;
+        }
+
+        /* 额外升级方式 */
+        .extra-upgrade {
+            background: rgba(124, 58, 237, 0.15);
+            border-radius: 18px;
+            padding: 14px;
+            margin: 10px 0 20px;
+            text-align: center;
+            border: 1px solid rgba(199, 125, 255, 0.3);
+        }
+
+        .extra-upgrade p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .extra-upgrade strong {
+            color: #ff8fab;
+        }
+
+        /* 按钮区域 */
+        .btn-group {
+            display: flex;
+            gap: 14px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 12px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(120deg, #9333ea, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 更多按钮内容区域（初始隐藏） */
+        .more-content {
+            display: none;
+            margin-top: 16px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .more-content.show {
+            display: block;
+            animation: fadeSlide 0.3s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .level-item-compact {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .level-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .level-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .level-sell {
+            background: rgba(0,0,0,0.4);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .upgrade-condition {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .btn-more {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .btn-more span {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .btn-more.active span {
+            transform: rotate(180deg);
+        }
+
+        /* 关闭按钮已移除，没有关闭入口 */
+    </style>
+</head>
+<body>
+<div class="agent-modal">
+    <h2 class="gradient-text">🤝 代理对接</h2>
+    <div class="sub-message">
+        代理只需要宣传、对接卡网并且<span style="color:#c77dff; font-weight:600;">代理免费</span>
+    </div>
+
+    <!-- 等级简要展示 (三个等级核心信息) -->
+    <div class="level-card">
+        <div class="level-header">
+            <span class="level-name">⭐ 普通代理</span>
+            <span class="level-price">售卖价 ≥ 1.3 RMB</span>
+        </div>
+        <div class="level-desc">初始代理等级，新手入门等级</div>
+        <div class="upgrade-rule">📈 销售额达到10 → 升级金牌代理</div>
+    </div>
+
+    <div class="level-card">
+        <div class="level-header">
+            <span class="level-name">🏅 金牌代理</span>
+            <span class="level-price">售卖价 ≥ 0.91 RMB</span>
+        </div>
+        <div class="level-desc">更高利润空间，更具竞争力</div>
+        <div class="upgrade-rule">📈 销售额达到30 → 升级核心代理</div>
+    </div>
+
+    <div class="level-card">
+        <div class="level-header">
+            <span class="level-name">💎 核心代理</span>
+            <span class="level-price">售卖价 ≥ 0.78 RMB</span>
+        </div>
+        <div class="level-desc">最高级别代理，最低成本价</div>
+        <div class="upgrade-rule">🏆 顶级权益，尊享专属扶持</div>
+    </div>
+
+    <!-- 额外升级方式：花销售额的钱升级 -->
+    <div class="extra-upgrade">
+        <p>💡 <strong>快速升级通道</strong> 💡</p>
+        <p>可花费「所需销售额」的RMB直接升级代理等级：</p>
+        <p style="font-size:0.8rem; margin-top:6px;">普通→金牌：需要 <span class="highlight">10RMB</span> &nbsp;|&nbsp; 金牌→核心：需要 <span class="highlight">20RMB</span></p>
+    </div>
+
+    <!-- 按钮区域: 如何对接 + 更多 -->
+    <div class="btn-group">
+        <button class="btn btn-primary" id="howToBtn">📘 如何对接</button>
+    </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 如何对接跳转链接
+    const HOW_URL = 'https://share.weiyun.com/YZahw1AK';
+    
+    const howBtn = document.getElementById('howToBtn');
+    const moreBtn = document.getElementById('moreBtn');
+    const morePanel = document.getElementById('morePanel');
+    const moreArrow = document.getElementById('moreArrow');
+    
+    // 如何对接: 打开新页面
+    howBtn.addEventListener('click', () => {
+        window.open(HOW_URL, '_blank');
+    });
+    
+   
+    
+    // 确保没有任何关闭弹窗的逻辑，用户只能通过浏览器返回/关闭标签页来退出
+    // 禁用body点击关闭和任何close功能（已彻底移除关闭按钮与close逻辑）
+    // 阻止点击事件冒泡可能导致的误判（但不需要关闭，仅保证弹窗稳定）
+    const modal = document.querySelector('.agent-modal');
+    modal.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    // 禁止body上的任何关闭动作
+    document.body.addEventListener('click', (e) => {
+        // 什么也不做，防止意外关闭
+        e.stopPropagation();
+    });
+    
+    // 可选: 添加一个很 subtle 的提示，用户只能通过浏览器标签关闭
+    console.log('代理对接弹窗 - 无关闭按钮，请通过浏览器关闭标签页');
+</script>
+</body>
+</html>
