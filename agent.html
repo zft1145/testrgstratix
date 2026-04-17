@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>代理对接 | 等级说明</title>
+    <title>代理对接 | 等级体系</title>
     <style>
         * {
             margin: 0;
@@ -12,41 +12,41 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
+        /* 页面背景：深色质感，铺满全屏 - 完全去除弹窗样式，与背景融为一体 */
         body {
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(26, 31, 59, 0.98);
             backdrop-filter: blur(12px);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
         }
 
-        /* 弹窗卡片 - 简洁干净 */
-        .agent-modal {
-            max-width: 420px;
+        /* 内容容器 — 透明无边框无阴影，完全由背景决定，不再是弹窗卡片 */
+        .agent-container {
+            max-width: 520px;
             width: 100%;
-            background: rgba(26, 31, 59, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 28px 24px 32px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
-            animation: fadeInScale 0.25s ease-out;
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            padding: 0;
+            box-shadow: none;
+            animation: fadeInUp 0.3s ease-out;
         }
 
-        @keyframes fadeInScale {
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: scale(0.94);
+                transform: translateY(12px);
             }
             to {
                 opacity: 1;
-                transform: scale(1);
+                transform: translateY(0);
             }
         }
 
-        /* 渐变文字 */
+        /* 头部渐变 */
         .gradient-text {
             background: linear-gradient(90deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
             background-size: 300% 100%;
@@ -62,299 +62,339 @@
             100% { background-position: 0% 50%; }
         }
 
-        .agent-modal h2 {
-            font-size: 1.7rem;
-            margin-bottom: 12px;
+        .agent-container h2 {
+            font-size: 1.9rem;
+            margin-bottom: 10px;
             font-weight: 700;
             text-align: center;
+            letter-spacing: -0.3px;
         }
 
         .sub-message {
             text-align: center;
-            color: rgba(255, 255, 255, 0.75);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
             padding-bottom: 12px;
             border-bottom: 1px dashed rgba(255,255,255,0.15);
         }
 
-        /* 等级卡片区域 */
-        .level-card {
+        /* 等级卡片 - 流动视觉 */
+        .level-flow-card {
             background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 20px 18px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.2s;
         }
 
-        .level-header {
+        .level-row-main {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
             flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .level-badge {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
         .level-name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #e2c6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .price-tag {
+            background: rgba(147, 51, 234, 0.4);
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 1px solid rgba(199, 125, 255, 0.6);
+            backdrop-filter: blur(4px);
+            color: #ffecb3;
+        }
+
+        .level-desc-light {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .upgrade-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 12px 0 6px;
+            color: #c77dff;
+            font-weight: 500;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .arrow-icon {
             font-size: 1.2rem;
+            background: rgba(199,125,255,0.2);
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        .upgrade-condition-badge {
+            background: rgba(0,0,0,0.35);
+            border-radius: 24px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #ffd6a5;
+            display: inline-block;
+            width: auto;
+            border-left: 3px solid #c77dff;
+        }
+
+        /* 额外快速升级通道 */
+        .fast-lane {
+            background: rgba(124, 58, 237, 0.2);
+            border-radius: 24px;
+            padding: 16px;
+            margin: 16px 0 24px;
+            text-align: center;
+            border: 1px solid rgba(199, 125, 255, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .fast-lane p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .fast-lane strong {
+            color: #ffb347;
             font-weight: 700;
         }
 
-        .level-price {
-            background: rgba(147, 51, 234, 0.3);
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: 1px solid rgba(199, 125, 255, 0.4);
+        .highlight-num {
+            color: #ffd966;
+            font-weight: 800;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
         }
 
-        .level-desc {
-            color: rgba(255,255,255,0.7);
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-        }
-
-        .upgrade-rule {
-            font-size: 0.8rem;
-            color: #c77dff;
-            margin-top: 8px;
-            padding-top: 6px;
-            border-top: 1px dotted rgba(255,255,255,0.1);
-        }
-
-        .highlight {
-            color: #ffd6a5;
-            font-weight: 600;
-        }
-
-        /* 额外升级方式 */
-        .extra-upgrade {
-            background: rgba(124, 58, 237, 0.15);
-            border-radius: 18px;
-            padding: 14px;
-            margin: 10px 0 20px;
-            text-align: center;
-            border: 1px solid rgba(199, 125, 255, 0.3);
-        }
-
-        .extra-upgrade p {
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.85);
-        }
-
-        .extra-upgrade strong {
-            color: #ff8fab;
-        }
-
-        /* 按钮区域 */
+        /* 按钮组区域 (三个按钮并列) */
         .btn-group {
             display: flex;
             gap: 14px;
-            margin-top: 8px;
+            margin-top: 12px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
         .btn {
             flex: 1;
-            min-width: 130px;
-            padding: 12px 18px;
-            border-radius: 40px;
+            min-width: 125px;
+            padding: 12px 16px;
+            border-radius: 60px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             text-align: center;
-            text-decoration: none;
-            display: inline-block;
             border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
         }
 
         .btn-primary {
             background: linear-gradient(120deg, #9333ea, #7c3aed);
+            border: none;
+            box-shadow: 0 6px 14px rgba(124, 58, 237, 0.3);
             color: white;
-            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
             filter: brightness(1.05);
+            box-shadow: 0 10px 18px rgba(124, 58, 237, 0.4);
         }
 
         .btn-outline {
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.4);
-            color: white;
         }
 
         .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.7);
+            transform: translateY(-2px);
         }
 
-        /* 更多按钮内容区域（初始隐藏） */
-        .more-content {
-            display: none;
-            margin-top: 16px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+        /* 辅助底部提示 */
+        .info-footer {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px;
         }
 
-        .more-content.show {
-            display: block;
-            animation: fadeSlide 0.3s ease;
-        }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .level-badge {
+                font-size: 1.2rem;
+            }
+            .level-name {
+                font-size: 1.2rem;
+            }
+            .price-tag {
+                font-size: 0.8rem;
+                padding: 4px 12px;
+            }
+            .btn {
+                min-width: 105px;
+                font-size: 0.8rem;
+                padding: 10px 12px;
             }
         }
-
-        .level-item-compact {
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-
-        .level-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .level-title {
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        .level-sell {
-            background: rgba(0,0,0,0.4);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-family: monospace;
-        }
-
-        .upgrade-condition {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.6);
-        }
-
-        .btn-more {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.3);
-            margin-top: 12px;
-            width: 100%;
-        }
-
-        .btn-more span {
-            display: inline-block;
-            transition: transform 0.2s;
-        }
-
-        .btn-more.active span {
-            transform: rotate(180deg);
-        }
-
-        /* 关闭按钮已移除，没有关闭入口 */
     </style>
 </head>
 <body>
-<div class="agent-modal">
+<div class="agent-container">
     <h2 class="gradient-text">🤝 代理对接</h2>
     <div class="sub-message">
         代理只需要宣传、对接卡网并且<span style="color:#c77dff; font-weight:600;">代理免费</span>
     </div>
 
-    <!-- 等级简要展示 (三个等级核心信息) -->
-    <div class="level-card">
-        <div class="level-header">
-            <span class="level-name">⭐ 普通代理</span>
-            <span class="level-price">售卖价 ≥ 1.3 RMB</span>
+    <!-- 等级流程展示 - 普通代理 -->
+    <div class="level-flow-card">
+        <div class="level-row-main">
+            <div class="level-badge">
+                <span>⭐</span>
+                <span class="level-name">普通代理</span>
+            </div>
+            <div class="price-tag">可定价 ≥ 1.3 RMB</div>
         </div>
-        <div class="level-desc">初始代理等级，新手入门等级</div>
-        <div class="upgrade-rule">📈 销售额达到10 → 升级金牌代理</div>
-    </div>
-
-    <div class="level-card">
-        <div class="level-header">
-            <span class="level-name">🏅 金牌代理</span>
-            <span class="level-price">售卖价 ≥ 0.91 RMB</span>
+        <div class="level-desc-light">初始代理等级，灵活起步，轻松拓展市场</div>
+        <div class="upgrade-arrow">
+            <span class="arrow-icon">⬇ 升级条件 ⬇</span>
         </div>
-        <div class="level-desc">更高利润空间，更具竞争力</div>
-        <div class="upgrade-rule">📈 销售额达到30 → 升级核心代理</div>
-    </div>
-
-    <div class="level-card">
-        <div class="level-header">
-            <span class="level-name">💎 核心代理</span>
-            <span class="level-price">售卖价 ≥ 0.78 RMB</span>
+        <div class="upgrade-condition-badge">
+            📈 累计销售额达到 10 或 直接支付 10 RMB → 晋升金牌代理
         </div>
-        <div class="level-desc">最高级别代理，最低成本价</div>
-        <div class="upgrade-rule">🏆 顶级权益，尊享专属扶持</div>
     </div>
 
-    <!-- 额外升级方式：花销售额的钱升级 -->
-    <div class="extra-upgrade">
-        <p>💡 <strong>快速升级通道</strong> 💡</p>
-        <p>可花费「所需销售额」的RMB直接升级代理等级：</p>
-        <p style="font-size:0.8rem; margin-top:6px;">普通→金牌：需要 <span class="highlight">10RMB</span> &nbsp;|&nbsp; 金牌→核心：需要 <span class="highlight">20RMB</span></p>
+    <!-- 金牌代理 -->
+    <div class="level-flow-card">
+        <div class="level-row-main">
+            <div class="level-badge">
+                <span>🏅</span>
+                <span class="level-name">金牌代理</span>
+            </div>
+            <div class="price-tag">可定价 ≥ 0.91 RMB</div>
+        </div>
+        <div class="level-desc-light">更高利润空间，更强竞争优势，快速成长</div>
+        <div class="upgrade-arrow">
+            <span class="arrow-icon">⬇ 升级条件 ⬇</span>
+        </div>
+        <div class="upgrade-condition-badge">
+            📈 累计销售额达到 30 或 直接支付 20 RMB → 晋升核心代理
+        </div>
     </div>
 
-    <!-- 按钮区域: 如何对接 + 更多 -->
+    <!-- 核心代理 -->
+    <div class="level-flow-card">
+        <div class="level-row-main">
+            <div class="level-badge">
+                <span>💎</span>
+                <span class="level-name">核心代理</span>
+            </div>
+            <div class="price-tag">可定价 ≥ 0.78 RMB</div>
+        </div>
+        <div class="level-desc-light">最高级别代理，最低成本价，专属扶持与资源</div>
+        <div class="upgrade-arrow">
+            <span class="arrow-icon">🏆 顶级权益</span>
+        </div>
+        <div class="upgrade-condition-badge" style="border-left-color: #ffaa44;">
+            ✨ 尊享专属客服、辅助推广、高额分润
+        </div>
+    </div>
+
+    <!-- 快速升级通道（文字清晰） -->
+    <div class="fast-lane">
+        <p>⚡ <strong>快速升级通道</strong> ⚡</p>
+        <p>无需等待销售额，直接<span class="highlight-num">花费对应RMB</span>即可提升等级：</p>
+        <p style="font-size:0.82rem; margin-top:8px;">普通 → 金牌：<strong class="highlight-num">10 RMB</strong> &nbsp;|&nbsp; 金牌 → 核心：<strong class="highlight-num">20 RMB</strong></p>
+    </div>
+
+    <!-- 三个主要按钮: 如何对接 / 升级代理 / 返回主站 -->
     <div class="btn-group">
         <button class="btn btn-primary" id="howToBtn">📘 如何对接</button>
+        <button class="btn btn-outline" id="upgradeBtn">🚀 升级代理</button>
+        <button class="btn btn-outline" id="backMainBtn">🏠 返回主站</button>
     </div>
-        </div>
+
+    <div class="info-footer">
+        🌟 永久代理资格 | 无隐藏费用
     </div>
 </div>
 
 <script>
-    // 如何对接跳转链接
-    const HOW_URL = 'https://share.weiyun.com/YZahw1AK';
-    
+    // 链接配置
+    const HOW_URL = 'https://share.weiyun.com/YZahw1AK';      // 如何对接（原有链接保持不变）
+    const UPGRADE_URL = 'https://qm.qq.com/q/GOmMpXWnmg';                // 升级代理跳转链接（按照需求）
+    const MAIN_SITE_URL = 'https://rgstratix.pages.dev';    // 主站地址
+
+    // 获取元素
     const howBtn = document.getElementById('howToBtn');
-    const moreBtn = document.getElementById('moreBtn');
-    const morePanel = document.getElementById('morePanel');
-    const moreArrow = document.getElementById('moreArrow');
-    
-    // 如何对接: 打开新页面
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    const backMainBtn = document.getElementById('backMainBtn');
+
+    // 如何对接：打开新窗口
     howBtn.addEventListener('click', () => {
         window.open(HOW_URL, '_blank');
     });
-    
-   
-    
-    // 确保没有任何关闭弹窗的逻辑，用户只能通过浏览器返回/关闭标签页来退出
-    // 禁用body点击关闭和任何close功能（已彻底移除关闭按钮与close逻辑）
-    // 阻止点击事件冒泡可能导致的误判（但不需要关闭，仅保证弹窗稳定）
-    const modal = document.querySelector('.agent-modal');
-    modal.addEventListener('click', (e) => {
-        e.stopPropagation();
+
+    // 升级代理：跳转链接（新窗口打开，根据需求可以_self或者_blank，这里采用新标签）
+    upgradeBtn.addEventListener('click', () => {
+        window.open(UPGRADE_URL, '_blank');
     });
-    
-    // 禁止body上的任何关闭动作
-    document.body.addEventListener('click', (e) => {
-        // 什么也不做，防止意外关闭
-        e.stopPropagation();
+
+    // 返回主站：跳转至主站 rgstratix.pages.dev
+    backMainBtn.addEventListener('click', () => {
+        window.location.href = MAIN_SITE_URL;
     });
+
+    // 完全去除弹窗残留样式及任何关闭逻辑，保证背景纯色透明容器
+    // 阻止可能冒泡，但无关闭按钮，无需额外处理
+    const container = document.querySelector('.agent-container');
+    if (container) {
+        container.addEventListener('click', (e) => e.stopPropagation());
+    }
     
-    // 可选: 添加一个很 subtle 的提示，用户只能通过浏览器标签关闭
-    console.log('代理对接弹窗 - 无关闭按钮，请通过浏览器关闭标签页');
+    console.log('代理页面已加载 — 等级体系: 普通→金牌→核心，含快速升级通道，三个按钮功能正常，主站链接已配置');
 </script>
 </body>
 </html>
