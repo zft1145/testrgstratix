@@ -18,7 +18,7 @@
         }
 
         body {
-            background: #1a1f3b;
+            background: #0a0e1a;
             color: #fff;
             overflow-x: hidden;
             position: relative;
@@ -27,10 +27,21 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
+        /* 动态渐变背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(123, 44, 191, 0.2), transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 143, 171, 0.15), transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(199, 125, 255, 0.1), transparent 60%);
+            z-index: -1;
+        }
+
         .bg-blur {
             position: fixed;
             inset: 0;
-            background: #1a1f3b;
+            background: #0a0e1a;
             filter: blur(8px);
             z-index: -2;
             transform: scale(1.1);
@@ -42,7 +53,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* 标题渐变 - 横向 90deg */
         .gradient-text {
             background: linear-gradient(90deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
             background-size: 300% 100%;
@@ -71,9 +81,9 @@
             max-width: 460px;
             width: 92%;
             z-index: 99;
-            background: rgba(255,255,255,0.08);
+            background: rgba(10, 14, 26, 0.7);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             opacity: 0;
             visibility: hidden;
@@ -134,7 +144,6 @@
             z-index: 3;
         }
 
-        /* 普通按钮样式 */
         .btn {
             flex: 1;
             padding: 14px 10px;
@@ -151,7 +160,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
-        /* 按钮上的文字使用和标题相同的渐变（横向流动） */
         .btn span {
             display: inline-block;
             font-weight: 700;
@@ -164,11 +172,11 @@
         }
         
         .btn-outline {
-            background: #222746;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(34, 39, 70, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        /* ========== 前往获取按钮 - 与标题同色系，但方向不同（斜向135度渐变） ========== */
         #getBtn {
             background: linear-gradient(135deg, #ffd6a5, #ff8fab, #c77dff, #7b2cbf);
             background-size: 300% 300%;
@@ -178,14 +186,12 @@
             animation: btnGradientFlow 5s ease infinite;
         }
         
-        /* 按钮专属渐变流动动画 - 斜向流动 */
         @keyframes btnGradientFlow {
             0% { background-position: 0% 0%; }
             50% { background-position: 100% 100%; }
             100% { background-position: 0% 0%; }
         }
         
-        /* 按钮光效扫过 */
         #getBtn::before {
             content: '';
             position: absolute;
@@ -208,7 +214,6 @@
             box-shadow: 0 10px 24px rgba(199, 125, 255, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
         }
         
-        /* 按钮文字稍微加粗，保持清晰 */
         #getBtn span {
             font-weight: 800;
             letter-spacing: 0.5px;
@@ -232,7 +237,6 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
         
-        /* 点击缩放动画 */
         .btn-click-animate {
             animation: btnPop 0.28s cubic-bezier(0.2, 1.3, 0.4, 1) forwards !important;
         }
@@ -256,36 +260,165 @@
             to { transform: scale(5); opacity: 0; }
         }
         
+        /* ========== 高级卡片样式 - 无表情包版本 ========== */
+        .features {
+            margin-top: 20px;
+        }
+        
         .features h2 {
             font-size: 1.5rem;
             margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: -0.3px;
         }
+        
         .feature-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 16px;
         }
+        
         .feature-item {
-            background: rgba(255,255,255,.04);
-            border-radius: 22px;
-            padding: 22px;
-            backdrop-filter: blur(22px);
-            border: 1px solid rgba(255,255,255,.12);
-            box-shadow: 0 8px 32px rgba(0,0,0,.12);
-            transition: all 0.25s ease;
+            position: relative;
+            background: rgba(15, 20, 35, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 20px 24px;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            cursor: pointer;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
+        /* 渐变边框光效 */
+        .feature-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, 
+                rgba(255, 214, 165, 0.5), 
+                rgba(255, 143, 171, 0.5), 
+                rgba(199, 125, 255, 0.5), 
+                rgba(123, 44, 191, 0.5));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        
+        /* 背景光晕 */
+        .feature-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, rgba(199, 125, 255, 0.08), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            border-radius: 28px;
+        }
+        
         .feature-item:hover {
-            background: rgba(255,255,255,.08);
-            border-color: rgba(255,255,255,.18);
-            transform: translateY(-5px);
+            transform: translateY(-6px) scale(1.01);
+            background: rgba(20, 26, 45, 0.75);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(199, 125, 255, 0.2) inset;
         }
+        
+        .feature-item:hover::before {
+            opacity: 1;
+        }
+        
+        .feature-item:hover::after {
+            opacity: 1;
+        }
+        
+        /* 标题样式 - 左侧带装饰条 */
         .feature-item h3 {
-            font-size: 1.15rem;
-            margin-bottom: 6px;
+            font-size: 1.18rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.2px;
         }
+        
+        /* 几何装饰 - 小菱形/正方形，无emoji */
+        .feature-item h3::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(135deg, #c77dff, #ff8fab);
+            border-radius: 1px;
+            transform: rotate(45deg);
+            opacity: 0.8;
+        }
+        
+        /* 不同卡片装饰颜色微调 */
+        .feature-item:nth-child(1) h3::before { background: linear-gradient(135deg, #ff8fab, #ffd6a5); }
+        .feature-item:nth-child(2) h3::before { background: linear-gradient(135deg, #ffd6a5, #c77dff); }
+        .feature-item:nth-child(3) h3::before { background: linear-gradient(135deg, #c77dff, #7b2cbf); }
+        .feature-item:nth-child(4) h3::before { background: linear-gradient(135deg, #7b2cbf, #ff8fab); }
+        .feature-item:nth-child(5) h3::before { background: linear-gradient(135deg, #ff8fab, #c77dff); }
+        .feature-item:nth-child(6) h3::before { background: linear-gradient(135deg, #ffd6a5, #7b2cbf); }
+        .feature-item:nth-child(7) h3::before { background: linear-gradient(135deg, #c77dff, #ffd6a5); }
+        .feature-item:nth-child(8) h3::before { background: linear-gradient(135deg, #7b2cbf, #ff8fab); }
+        
+        /* 描述文字 */
         .feature-item p {
-            color: rgba(255,255,255,.7);
-            font-size: .95rem;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.88rem;
+            line-height: 1.45;
+            margin-left: 16px;
+            transition: color 0.3s ease;
+        }
+        
+        .feature-item:hover p {
+            color: rgba(255, 255, 255, 0.88);
+        }
+        
+        /* 卡片底部装饰线 */
+        .feature-item .card-line {
+            position: absolute;
+            bottom: 0;
+            left: 15%;
+            width: 70%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(199, 125, 255, 0.5), rgba(255, 143, 171, 0.5), transparent);
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .feature-item:hover .card-line {
+            opacity: 1;
+        }
+        
+        /* 右上角装饰点 */
+        .feature-item .corner-dot {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            width: 4px;
+            height: 4px;
+            background: rgba(199, 125, 255, 0.4);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover .corner-dot {
+            background: rgba(199, 125, 255, 0.9);
+            box-shadow: 0 0 6px rgba(199, 125, 255, 0.6);
         }
         
         .type-cursor {
@@ -305,7 +438,7 @@
         .browser-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(26,31,59,.94);
+            background: rgba(10, 14, 26, 0.96);
             backdrop-filter: blur(12px);
             z-index: 99999;
             display: flex;
@@ -363,13 +496,11 @@
             100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
         }
         
-        /* 防复制/防选中 */
         body {
             -webkit-user-select: none;
             user-select: none;
         }
         
-        /* 允许输入框和按钮文字正常，其他禁止选中 */
         input, textarea, .copy-link-box {
             -webkit-user-select: text;
             user-select: text;
@@ -377,6 +508,8 @@
         
         @media (max-width: 480px) {
             .action-buttons { gap: 12px; }
+            .feature-item { padding: 18px 20px; }
+            .feature-item p { margin-left: 12px; }
         }
     </style>
 </head>
@@ -399,10 +532,10 @@
 
 <div class="container">
     <div class="hero">
-        <h1 id="mainTitle" class="gradient-text"></h1>
+        <h1 id="mainTitle" class="gradient-text">绕过Stratix<br>注入检测</h1>
         <div class="eng-sub">The Best Stratix Bypass Solution</div>
         <p id="subtitle">最强Stratix解决方案</p>
-        <div class="advantage-line" id="advantageType"></div>
+        <div class="advantage-line" id="advantageType">注入无检测</div>
     </div>
 
     <div class="action-buttons">
@@ -413,74 +546,111 @@
     <div class="features">
         <h2 class="gradient-text">为何选择我们？</h2>
         <div class="feature-list">
-            <div class="feature-item"><h3 class="gradient-text">完美绕过</h3><p>一点都检测不到</p></div>
-            <div class="feature-item"><h3 class="gradient-text">超低价格</h3><p>不超过5RMB</p></div>
-            <div class="feature-item"><h3 class="gradient-text">自动售卖</h3><p>无需等待</p></div>
-            <div class="feature-item"><h3 class="gradient-text">用户较多</h3><p>30+用户</p></div>
-            <div class="feature-item"><h3 class="gradient-text">极其稳定</h3><p>比虚拟机 XP沙盒稳定高效</p></div>
-            <div class="feature-item"><h3 class="gradient-text">超棒售后</h3><p>一对一解答，问题秒处理</p></div>
-            <div class="feature-item"><h3 class="gradient-text">开放代理</h3><p>免费合作，轻松赚钱</p></div>
-            <div class="feature-item"><h3 class="gradient-text">教程详细</h3><p>小白也能一键上手</p></div>
+            <div class="feature-item">
+                <h3 class="gradient-text">完美绕过</h3>
+                <p>一点都检测不到</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">超低价格</h3>
+                <p>不超过5RMB</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">自动售卖</h3>
+                <p>无需等待</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">用户较多</h3>
+                <p>30+用户</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">极其稳定</h3>
+                <p>比虚拟机 XP沙盒稳定高效</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">超棒售后</h3>
+                <p>一对一解答，问题秒处理</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">开放代理</h3>
+                <p>免费合作，轻松赚钱</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
+            <div class="feature-item">
+                <h3 class="gradient-text">教程详细</h3>
+                <p>小白也能一键上手</p>
+                <div class="card-line"></div>
+                <div class="corner-dot"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     (function() {
-        // ========== 防篡改/防复制/防调试 ==========
-        
-        // 1. 禁用右键菜单（防查看源码的快捷方式）
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
         
-        // 2. 禁用 F12 / Ctrl+Shift+I / Ctrl+U 等快捷键
         document.addEventListener('keydown', function(e) {
-            // F12
             if (e.key === 'F12') {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+Shift+I (Windows/Linux) 或 Cmd+Option+I (Mac)
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+U (查看源码)
             if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+Shift+J / Ctrl+Shift+C
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+S (保存页面)
             if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) {
                 e.preventDefault();
                 return false;
             }
         });
         
-        // 3. 检测开发者工具打开（简单检测，增加破解成本）
         setInterval(function() {
             const before = new Date();
-            debugger;  // 当开发者工具打开时，debugger会暂停，导致时间差变大
+            debugger;
             const after = new Date();
             if (after - before > 100) {
-                // 检测到调试，可选操作：清空页面或跳转
-                // 这里不做极端操作，只console警告（避免误伤普通用户）
                 console.clear();
             }
         }, 3000);
         
-        // 4. 防代码复制：动态生成关键变量，让静态分析变难
-        // 将目标URL进行简单编码，运行时解码
+        if (window.self !== window.top) {
+            window.top.location.href = window.self.location.href;
+        }
+        
+        const originalLog = console.log;
+        console.log = function() {
+            if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('target')) {
+                return;
+            }
+            originalLog.apply(console, arguments);
+        };
+        
         const _0xa3f2 = ['68747470733a2f2f66616b612e6c6f6e67666569312e636f6d2f6974656d2f7470307a7171', 'aHR0cHM6Ly9mYWthLmxvbmdmZWkxLmNvbS9pdGVtL3RwMHpxcQ=='];
         const targetUrl = (function() {
-            // 简单解码
             try {
                 return atob(_0xa3f2[1]);
             } catch(e) {
@@ -491,22 +661,6 @@
         const agentPageUrl = (function() {
             return 'agent.html';
         })();
-        
-        // 5. 检测是否在iframe中被嵌套（防别人用iframe嵌入偷流量）
-        if (window.self !== window.top) {
-            // 被嵌套了，跳转到原页面
-            window.top.location.href = window.self.location.href;
-        }
-        
-        // 6. 动态修改控制台输出，增加干扰
-        const originalLog = console.log;
-        console.log = function() {
-            // 过滤掉一些敏感输出，或者什么都不输出
-            if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('target')) {
-                return;
-            }
-            originalLog.apply(console, arguments);
-        };
         
         function isRestrictedEnv() {
             const ua = navigator.userAgent.toLowerCase();
@@ -531,12 +685,10 @@
             if (!btn) return;
             btn.classList.add('btn-click-animate');
             addRipple(btn, null);
-            
             btn.addEventListener('animationend', () => {
                 btn.classList.remove('btn-click-animate');
                 window.location.href = targetLocation;
             }, { once: true });
-            
             setTimeout(() => {
                 if (btn.classList.contains('btn-click-animate')) {
                     btn.classList.remove('btn-click-animate');
@@ -576,11 +728,9 @@
                     addRipple(freshGet, e);
                     if (isRestrictedEnv()) {
                         const overlay = $('browserOverlay');
-                        if (overlay) {
-                            overlay.classList.add('show');
-                            freshGet.classList.add('btn-click-animate');
-                            setTimeout(() => freshGet.classList.remove('btn-click-animate'), 280);
-                        }
+                        if (overlay) overlay.classList.add('show');
+                        freshGet.classList.add('btn-click-animate');
+                        setTimeout(() => freshGet.classList.remove('btn-click-animate'), 280);
                         return;
                     }
                     animateAndNavigate(freshGet, targetUrl);
@@ -627,15 +777,14 @@
         async function typeMainTitle() {
             const titleEl = $('mainTitle');
             if (!titleEl) return;
-            
-            titleEl.innerHTML = '';
             const line1 = '绕过Stratix';
+            const line2 = '注入检测';
+            titleEl.innerHTML = '';
             for (let i = 0; i < line1.length; i++) {
                 titleEl.innerHTML += line1[i];
                 await new Promise(r => setTimeout(r, 50));
             }
             titleEl.innerHTML += '<br>';
-            const line2 = '注入检测';
             for (let i = 0; i < line2.length; i++) {
                 titleEl.innerHTML += line2[i];
                 await new Promise(r => setTimeout(r, 50));
@@ -652,7 +801,12 @@
             if (!advEl) return;
             const phrases = ["注入无检测", "稳定不闪退", "全设备兼容", "自动秒发货"];
             let idx = 0;
-            advEl.innerHTML = phrases[0] + '<span class="type-cursor"></span>';
+            advEl.innerHTML = '';
+            for (let i = 0; i <= phrases[0].length; i++) {
+                if (!advEl) return;
+                advEl.innerHTML = phrases[0].slice(0, i) + '<span class="type-cursor"></span>';
+                await new Promise(r => setTimeout(r, 50));
+            }
             await new Promise(r => setTimeout(r, 1800));
             while (true) {
                 idx = (idx + 1) % phrases.length;
@@ -683,33 +837,20 @@
         if (jumpSpan) jumpSpan.innerText = targetUrl;
         
         let animationStarted = false;
-        function initAnimationsImmediately() {
+        function startAnimationsImmediately() {
             if (animationStarted) return;
             animationStarted = true;
-            const titleEl = $('mainTitle');
-            if (titleEl) titleEl.innerHTML = '';
-            const advEl = $('advantageType');
-            if (advEl) advEl.innerHTML = '';
             typeMainTitle().catch(console.warn);
             rotateAdvantage().catch(console.warn);
         }
         
+        startAnimationsImmediately();
+        
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                bindInteractions();
-                initAnimationsImmediately();
-            });
+            document.addEventListener('DOMContentLoaded', bindInteractions);
         } else {
             bindInteractions();
-            initAnimationsImmediately();
         }
-        
-        window.addEventListener('load', () => {
-            const titleEl = $('mainTitle');
-            if (titleEl && (!titleEl.innerHTML || titleEl.innerHTML.length < 5)) {
-                if (!animationStarted) initAnimationsImmediately();
-            }
-        });
         
         if (!navigator.connection || navigator.connection.saveData !== true) {
             const preAgent = document.createElement('link');
